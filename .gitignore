@@ -1,5 +1,6 @@
 *.o
 testCrypto
+fileCrypto
 
 ############ MS VISUAL STUDIO FILES #################
 ## Ignore Visual Studio temporary files, build results, and
