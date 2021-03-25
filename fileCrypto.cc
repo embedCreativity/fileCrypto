@@ -14,21 +14,37 @@
 ************************************************************************/
 
 #include "fileCrypto.h"
+#include <stdlib.h>
+#include <time.h>
+#include <netinet/in.h> // for htonl, ntohl
+#include <openssl/md5.h> // for MD5 checksum
+
+#define DIGEST_LEN 16
+
+typedef struct _fileHeader_t
+{
+    uint8_t iv[16];
+    uint32_t len;
+    uint8_t digest[DIGEST_LEN];
+} __attribute__ ((__packed__)) fileHeader_t;
 
 extern CryptoInterface_T cryptoIntf;
 
 bool FileCrypto::SetKey(char* keyFile)
 {
+    // Generate a random IV sequence
+    srand (time(NULL));
+    for ( int i = 0; i < IV_LEN; i++ ) {
+        iv[i] = static_cast<uint8_t>(rand() % 256);
+    }
+
+    // Read the key from the keyFile
     fileHandle = fopen(keyFile, "r");
     if ( fileHandle == NULL ) {
         return false;
     }
 
     if ( KEY_LEN != fread(key, 1, KEY_LEN, fileHandle) ) {
-        return false;
-    }
-
-    if ( IV_LEN != fread(iv, 1, IV_LEN, fileHandle) ) {
         return false;
     }
 
@@ -43,6 +59,10 @@ bool FileCrypto::FileEncrypt ( char* plainTextFile, char* cipherTextFile )
     uint8_t* plainData;
     uint8_t* cipherData;
     uint32_t fileLen;
+
+    MD5_CTX context;
+    MD5_Init(&context);
+    fileHeader_t fileHeader;
 
     fileHandle = fopen(plainTextFile, "r");
     if ( fileHandle == NULL ) {
@@ -88,6 +108,16 @@ bool FileCrypto::FileEncrypt ( char* plainTextFile, char* cipherTextFile )
         return false;
     }
 
+    // Prepare the file header
+    memcpy(fileHeader.iv, this->iv, IV_LEN);
+    fileHeader.len = htonl(fileLen);
+    MD5_Update(&context, cipherData, fileLen);
+    MD5_Final(fileHeader.digest, &context);
+
+    // Write out the file header to the start of the file
+    fwrite(&fileHeader, 1, sizeof(fileHeader), fileHandle);
+
+    // Write ciphertext into the rest of the file
     fwrite(cipherData, 1, fileLen, fileHandle);
     fclose(fileHandle);
     free(cipherData);
@@ -105,7 +135,7 @@ int main ( int argc, char *argv[] )
 	FileCrypto crypto;
 
     if ( argc != 4 ) {
-        printf("USAGE: fileCrypto infile outfile keyfile\n\n");
+        printf("USAGE: %s infile outfile keyfile\n\n", argv[0]);
         return -1;
     }
 

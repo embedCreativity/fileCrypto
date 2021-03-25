@@ -11,3 +11,6 @@ and the key for the AES algorithm. Protect the keyfile from disclosure and you s
 output file across a network with reasonable security. The recipient of the encrypted file needs to have a copy of the
 keyfile to retrieve the original plaintext source file.
 
+REQUIREMENTS:  libssl-dev with:
+   Headers at : /usr/include/openssl/md5.h
+   Libs at    : /usr/lib/x86_64-linux-gnu/{libssl, libcrypto}

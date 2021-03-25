@@ -1,18 +1,28 @@
 CXXFLAGS +=  -g -Wall
-LDFLAGS += -L./crypto/
-LIBRARY += -lcrypto
+INC += -I./crypto
+LDFLAGS += -L./crypto/ -L/usr/lib/x86_64-linux-gnu/
+
+DYNAMIC_LIB_DIRS +=
+DYNAMIC_LIBS += -lssl -lcrypto
+
+STATIC_LIB_DIRS += -L./crypto/
+STATIC_LIBS += -lsimplecrypto
+
+PROGRAM = xmlPackager
+
 
 # build helloworld executable when user executes "make"
-fileCrypto: fileCrypto.o libcrypto.a
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) fileCrypto.o $(LIBRARY) -o fileCrypto
+$(PROGRAM): fileCrypto.o libcrypto.a
+	$(CXX) fileCrypto.o -Wl,-Bstatic $(STATIC_LIBS) $(STATIC_LIB_DIRS) -Wl,-Bdynamic $(DYNAMIC_LIBS) $(DYNAMIC_LIB_DIRS) -o $(PROGRAM)
 fileCrypto.o: fileCrypto.cc
-	$(CXX) $(CXXFLAGS) -c fileCrypto.cc
+	$(CXX) $(CXXFLAGS) $(INC) -c fileCrypto.cc
 
 libcrypto.a:
 	(cd crypto; make)
 
 # remove object files and executable when user executes "make clean"
 clean:
-	rm -f *.o testCrypto fileCrypto
+	(cd crypto; make clean)
+	rm -f *.o testCrypto $(PROGRAM)
 
 
