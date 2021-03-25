@@ -1,6 +1,6 @@
 *.o
 testCrypto
-fileCrypto
+xmlPackager
 
 ############ MS VISUAL STUDIO FILES #################
 ## Ignore Visual Studio temporary files, build results, and

@@ -1,10 +1,7 @@
 CXXFLAGS +=  -g -Wall
 INC += -I./crypto
-LDFLAGS += -L./crypto/ -L/usr/lib/x86_64-linux-gnu/
-
 DYNAMIC_LIB_DIRS +=
 DYNAMIC_LIBS += -lssl -lcrypto
-
 STATIC_LIB_DIRS += -L./crypto/
 STATIC_LIBS += -lsimplecrypto
 
